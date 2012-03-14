@@ -1,7 +1,18 @@
-;| Elisp-Utils
+;| Utils
 (defmacro λ (&rest args)
   `(lambda ,(butlast args)
      ,(car (last args))))
+
+(defun @ (f xs)
+  (mapc f xs))
+
+(defun map (f xs)
+  (mapcar f xs))
+
+(defun zip-with (f xs ys)
+  (if (and xs ys)
+      (cons (funcall f (car xs) (car ys))
+	    (zip-with f (cdr xs) (cdr ys)))))
 
 ;| General
 (scroll-bar-mode -1)
@@ -11,6 +22,10 @@
 (desktop-save-mode 1)
 (setq inhibit-splash-screen t)
 
+;| Global-Keybindings
+(define-key global-map [(control \\)] [?\u03BB])
+(define-key global-map (kbd "RET") 'newline-and-indent)
+
 ;| UTF-8
 (setq default-buffer-file-coding-system 'utf-8)
 (setq locale-coding-system 'utf-8)
@@ -19,54 +34,71 @@
 (set-selection-coding-system 'utf-8)
 (prefer-coding-system 'utf-8)
 
-;| Windows
-(setq w:code (car (get-buffer-window-list))
-      w:sbar () ;; \
-      w:note () ;;  } are set in `Speedbar' section
-      w:repl () ;; /
-      )
+;| Paths [p]
+(setq p:site-lisp "C:/Program Files (x86)/Emacs/site-lisp/"
+      p:prog      "S:/prog/"
+      p:sandbox   "S:/prog/sandbox/"
+      p:hs-proj   "S:/prog/lang.haskell/-.proj/")
 
-;| Paths
-(setq p:site-lisp "C:/Program Files (x86)/Emacs/site-lisp/")
+(@ (λ p (add-to-list 'load-path (concat p:site-lisp p)))
+   '(""
+     "color-theme-6.6.0"
+     "slime-2011-11-09"))
 
-(mapc (λ p (add-to-list 'load-path (concat p:site-lisp p)))
-      '("color-theme-6.6.0" ""
-	"slime-2011-11-09"))
+;| Windows [w]
+(setq w:code (car (get-buffer-window-list)))
 
-;| Global-Keybindings
-(define-key global-map [(control \\)] [?\u03BB])
-(define-key global-map (kbd "RET") 'newline-and-indent)
+;| Speedbar [w]
+(require 'sr-speedbar)
 
-;| Highlight-Parentheses
-" (require 'highlight-parentheses)
-  (highlight-parentheses-mode 1) "
+(@ 'speedbar-add-supported-extension
+   '(".hs" ".lhs" ".lisp"))
+
+(sr-speedbar-toggle)
+
+(setq w:sbar sr-speedbar-window)
+
+(defun speedbar-set-directory (path)
+  (select-window w:sbar)
+  (setq default-directory path)
+  (speedbar-update-contents))
+
+;| Windows [w]
+(setq w:repl (split-window w:sbar 15)
+      w:menu (split-window w:sbar () t))
+
+;| Navigation
+(set-window-buffer w:menu "*scratch*")
+
+(require 'button)
+
+(with-current-buffer "*scratch*"
+  (end-of-buffer)
+  (macrolet
+      (($ (s p)
+	  `(progn
+	     (insert-button
+	      ,s 'action (λ _ (speedbar-set-directory ,p)))
+	     (newline)
+	     (newline))))
+    ($ "hs-proj"   p:hs-proj)
+    ($ "sandbox"   p:sandbox)
+    ($ "prog"      p:prog)
+    ($ "site-lisp" p:site-lisp)))
 
 ;| Color-Theme
 (require 'color-theme)
 (color-theme-initialize)
 (color-theme-dark-blue2)
 
-;| Speedbar
-(require 'sr-speedbar)
-(mapc 'speedbar-add-supported-extension
-      '(".hs" ".lhs" ".lisp"))
-(sr-speedbar-toggle)
-
-(setq w:sbar (get-buffer-window "*SPEEDBAR*")
-      w:repl (split-window w:sbar 15)
-      w:note (split-window w:sbar () t))
-
-;| Notes
-(set-window-buffer w:note (get-buffer "*scratch*"))
-
 ;| Haskell-Mode
 (load (concat p:site-lisp
 	      "haskell-mode-2.8.0/haskell-site-file.el"))
 
-(mapc (λ e (add-hook 'haskell-mode-hook e))
-      '(turn-on-haskell-doc-mode
-	turn-on-haskell-indentation
-	font-lock-mode))
+(@ (λ e (add-hook 'haskell-mode-hook e))
+   '(turn-on-haskell-doc-mode
+     turn-on-haskell-indentation
+     font-lock-mode))
 
 (require 'inf-haskell)
 
