@@ -18,6 +18,7 @@
 ;| General
 (scroll-bar-mode   -1)
 (tool-bar-mode     -1)
+(menu-bar-mode     -1)
 (blink-cursor-mode -1)
 
 (setq blink-matching-paren  nil
@@ -167,7 +168,7 @@
 (color-theme-dark-blue2)
 
 ;| Haskell-Mode
-(site-load "haskell-mode-2.8.0/haskell-site-file.el")
+(load "S:/prog/lang.elisp/haskell-mode/haskell-site-file.el")
 
 (mapc (lambda (event)
 	(add-hook 'haskell-mode-hook event))
