@@ -9,6 +9,12 @@
 (defun site-load (path)
   (load (concat site-lisp-path path)))
 
+(defun buffer-mode (buffer-or-string)
+  "Returns the major mode associated with a buffer."
+  (save-excursion
+     (set-buffer buffer-or-string)
+     major-mode))
+
 ;| General
 (scroll-bar-mode   -1)
 (tool-bar-mode     -1)
@@ -48,7 +54,12 @@
 (setq code-window (car (get-buffer-window-list)))
 
 ;| Speedbar
+(require 'speedbar)
 (require 'sr-speedbar)
+
+(nconc speedbar-ignored-modes
+       '(shell-mode
+	 inferior-haskell-mode))
 
 (mapc 'speedbar-add-supported-extension
       '(".hs" ".lhs" ".lisp"))
@@ -71,6 +82,12 @@
 
 (setq powershell-process
       (get-buffer-process (powershell)))
+
+(push (lambda ()
+	(process-send-string powershell-process
+			     (concat "cd \"" default-directory "\"\n")))
+      speedbar-update-contents-hook)
+
 
 ; speedbar-menu-window resizer (to 13 columns)
 (push (lambda (_)
