@@ -1,5 +1,3 @@
-
-;; My
 (defgroup my ()
   "Customization group for my stuff.")
 
@@ -15,13 +13,36 @@
   "Whether I like to use utf-8 everywhere"
   :group 'my)
 
+(defcustom my-code-directories-alist
+  `((" [ haskell ] " . "S:/prog/lang.haskell/-.proj/")
+    ("" . "")
+    (" [ sandbox ] " . "S:/prog/sandbox/")
+    ("  [ prog ]   " . "S:/prog/")
+    ("" . "")
+    ("[ site-lisp ]" . ,my-site-lisp-path)
+    ("[ emacs-src ]" . "C:/Program Files (x86)/Emacs/emacs/lisp/"))
+  "List of my most general directories with code."
+  :group 'my)
+
+(defvar my-code-window ()
+  "Window for code.")
+
+(defvar my-code-menu-window ()
+  "Window for code-navigation menu with entries from `my-code-directories-alist'.")
+
+(defvar my-interactive-window ()
+  "Window for repls, completions, debuggers, etc.")
+
+(defvar my-control-menu-window ()
+  "Window for switching stuff in interactive window and other general stuff.")
+
 ;; Maximize emacs
 (when (fboundp 'w32-send-sys-command)
   (w32-send-sys-command #xf030))
 
 ;; Utils
 (defun site-load (path)
-  (load (concat my-site-lisp path)))
+  (load (concat my-site-lisp-path path)))
 
 (defun buffer-mode (buffer-or-string)
   "Returns the major mode associated with a buffer."
@@ -60,7 +81,7 @@
 ;; Auto-Load Site-Lisp Stuff
 (mapc (lambda (path)
 	(add-to-list 'load-path
-		     (concat "C:/Program Files (x86)/Emacs/site-lisp/"
+		     (concat my-site-lisp-path
                              path)))
       '(""
 	"color-theme-6.6.0"
@@ -69,11 +90,11 @@
         "haskell-mode"))
 
 ;; Icicles
-(require 'icicles)
-(icy-mode 1)
+;(require 'icicles)
+;(icy-mode 1)
 
 ;; Code-Window Init
-(setq code-window (car (get-buffer-window-list)))
+(setq my-code-window (car (get-buffer-window-list)))
 
 ;; Speedbar
 (require 'speedbar)
@@ -94,9 +115,9 @@
   (speedbar-update-contents))
 
 ;; Windows
-(setq interactive-window      (split-window sr-speedbar-window 15)
-      speedbar-menu-window    (split-window sr-speedbar-window () t)
-      interactive-menu-window (split-window speedbar-menu-window))
+(setq my-interactive-window  (split-window sr-speedbar-window 15)
+      my-code-menu-window    (split-window sr-speedbar-window () t)
+      my-control-menu-window (split-window my-code-menu-window))
 
 ;; PowerShell
 (autoload 'powershell "powershell"
@@ -111,17 +132,17 @@
       speedbar-update-contents-hook)
 
 
-; speedbar-menu-window resizer (to 13 columns)
+; my-code-menu-window resizer (to 13 columns)
 (push (lambda (_)
-	(let ((w (window-width speedbar-menu-window)))
+	(let ((w (window-width my-code-menu-window)))
 	  (when (> w 13)
-	    (with-selected-window speedbar-menu-window
+	    (with-selected-window my-code-menu-window
 	      (shrink-window-horizontally (- w 13))))))
       window-size-change-functions)
 
 ; powershell-window resizer
 (push (lambda (_)
-	(if (= 59 (window-width interactive-window))
+	(if (= 59 (window-width my-interactive-window))
 	    (powershell--set-window-width powershell-process 59)))
       window-size-change-functions)
 
@@ -133,26 +154,20 @@
   "Face for green links in upper navigation menu."
   :group 'basic-faces)
 
-(let ((w speedbar-menu-window))
+(let ((w my-code-menu-window))
   (set-window-buffer w (generate-new-buffer "menu-a"))
   (set-window-dedicated-p w t))
 
 (with-current-buffer "menu-a"
   (end-of-buffer)
-  (flet (($ (label path)
-	    (newline)
-	    (insert-button label
-			   'action `(lambda (_)
-				      (speedbar-set-directory ,path))
-			   'face 'green-link
-			   'help-echo nil)))
-    ($ " [ haskell ] " "S:/prog/lang.haskell/-.proj/")
-    (newline)
-    ($ " [ sandbox ] " "S:/prog/sandbox/")
-    ($ "  [ prog ]   " "S:/prog/")
-    (newline)
-    ($ "[ site-lisp ]" "C:/Program Files (x86)/Emacs/site-lisp/")
-    ($ "[ emacs-src ]" "C:/Program Files (x86)/Emacs/emacs/lisp/")))
+  (mapc (lambda (entry)
+          (newline)
+          (insert-button (car entry)
+                         'action `(lambda (_)
+                                    (speedbar-set-directory ,(cdr entry)))
+                         'face 'green-link
+                         'help-echo nil))
+        my-code-directories-alist))
 
 ; Menu-B
 (defface yellow-link '((t (:foreground "yellow")))
@@ -167,7 +182,7 @@
   "Face for orange links in lower navigation menu."
   :group 'basic-faces)
 
-(let ((w interactive-menu-window))
+(let ((w my-control-menu-window))
   (set-window-buffer w (generate-new-buffer "menu-b"))
   (set-window-dedicated-p w t))
 
@@ -178,7 +193,7 @@
 	    (insert-button label
 			   'action (or action
 				       `(lambda (_)
-					  (set-window-buffer interactive-window
+					  (set-window-buffer my-interactive-window
 							     ,buffer)))
 			   'face (or face
 				     'yellow-link)
@@ -186,21 +201,45 @@
     ($ "  [ ghci ]   " "*haskell*")
     ($ "   [ ps ]    " "*PowerShell*")
     (newline)
-    ($ " [ buffers ] " "*Buffer List*" 'orange-link)
+    ($ " [ buffers ] " () 'orange-link
+       (lambda (_)
+         (set-window-buffer my-interactive-window "*Buffer List*")
+         (update-buffer-menu)))
     ($ "  [ trace ]  " "*Backtrace*" 'orange-link)
     (newline)
     ($ " [ init.el ] " ()
        'red-link
        (lambda (_)
-	 (with-selected-window code-window
-	   (set-window-buffer code-window
+	 (with-selected-window my-code-window
+	   (set-window-buffer my-code-window
 			      (or (get-buffer "init.el")
 				  (find-file "~/.emacs.d/init.el"))))))))
 
 ;; Buffer-List Customization (Hacks!)
-(with-current-buffer (window-buffer (list-buffers))
-  (setq Buffer-menu-files-only t)
-  (revert-buffer))
+(setq my-buffers-list-buffer (window-buffer (list-buffers)))
+
+(defun buffer-menu-mouse-select-other-window (event)
+  "Select the buffer (in other window) whose line you click on."
+  (interactive "e")
+  (let (buffer)
+    (with-current-buffer my-buffers-list-buffer
+      (save-excursion
+	(goto-char (posn-point (event-end event)))
+	(setq buffer (Buffer-menu-buffer t))))
+    (with-selected-window my-interactive-window
+      (switch-to-buffer-other-window buffer))))
+
+(defun update-buffer-menu ()
+  (with-selected-window my-interactive-window
+    (with-current-buffer my-buffers-list-buffer
+      (setq Buffer-menu-files-only t)
+      (revert-buffer))))
+
+(define-key Buffer-menu-mode-map [mouse-2]
+  'buffer-menu-mouse-select-other-window)
+
+(add-hook 'find-file-hook
+          'update-buffer-menu)
 
 ;; Color-Theme
 (require 'color-theme)
@@ -219,7 +258,7 @@
 (require 'inf-haskell)
 
 (inferior-haskell-start-process '("ghci"))
-(set-window-buffer interactive-window
+(set-window-buffer my-interactive-window
 		   inferior-haskell-buffer)
 
 ;; Octave
@@ -245,3 +284,11 @@
 ;; Geiser
 (site-load "geiser-0.1.3/elisp/geiser.el")
 (setq geiser-impl-installed-implementations '(racket))
+
+;; Force some buffers to display in my-interactive-window
+(setq special-display-function 'my-display-buffer)
+(setq special-display-regexps '("^\\*.*"))
+
+(defun my-display-buffer (buffer &rest _)  
+  (set-window-buffer my-interactive-window buffer)
+  my-interactive-window)
