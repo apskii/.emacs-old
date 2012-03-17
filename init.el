@@ -1,13 +1,27 @@
-;| Maximize emacs
-(w32-send-sys-command #xf030)
 
-;| Utils
-(defmacro x2 (form)
-  `(progn ,form
-	  ,form))
+;; My
+(defgroup my ()
+  "Customization group for my stuff.")
 
+(defcustom my-site-lisp-path "C:/Program Files (x86)/Emacs/site-lisp/"
+  "Path to my /Emacs/site-lisp/."
+  :group 'my)
+
+(defcustom my-tabs-are-spaces t
+  "Whether I like to use spaces everywhere."
+  :group 'my)
+
+(defcustom my-code-is-utf-8 t
+  "Whether I like to use utf-8 everywhere"
+  :group 'my)
+
+;; Maximize emacs
+(when (fboundp 'w32-send-sys-command)
+  (w32-send-sys-command #xf030))
+
+;; Utils
 (defun site-load (path)
-  (load (concat site-lisp-path path)))
+  (load (concat my-site-lisp path)))
 
 (defun buffer-mode (buffer-or-string)
   "Returns the major mode associated with a buffer."
@@ -15,7 +29,7 @@
      (set-buffer buffer-or-string)
      major-mode))
 
-;| General
+;; General
 (scroll-bar-mode   -1)
 (tool-bar-mode     -1)
 (menu-bar-mode     -1)
@@ -24,37 +38,44 @@
 (setq blink-matching-paren  nil
       inhibit-splash-screen t)
 
-;| Global-Keybindings
+;; Tabs
+(when my-tabs-are-spaces
+  (setq-default indent-tabs-mode nil))
+
+;; Global-Keybindings
 (define-key global-map [(control \\)] [?\u03BB])
 (define-key global-map (kbd "RET") 'newline-and-indent)
 
-;| UTF-8
-(setq default-buffer-file-coding-system 'utf-8
-      locale-coding-system              'utf-8)
+;; UTF-8
+(when my-code-is-utf-8
+  (setq default-buffer-file-coding-system 'utf-8
+        locale-coding-system              'utf-8)  
 
-(set-terminal-coding-system  'utf-8)
-(set-keyboard-coding-system  'utf-8)
-(set-selection-coding-system 'utf-8)
+  (set-terminal-coding-system  'utf-8)
+  (set-keyboard-coding-system  'utf-8)
+  (set-selection-coding-system 'utf-8)
+  
+  (prefer-coding-system 'utf-8))
 
-(prefer-coding-system 'utf-8)
-
-;| Paths
-(setq site-lisp-path "C:/Program Files (x86)/Emacs/site-lisp/"
-      prog-path      "S:/prog/"
-      sandbox-path   "S:/prog/sandbox/"
-      hs-proj-path   "S:/prog/lang.haskell/-.proj/")
-
+;; Auto-Load Site-Lisp Stuff
 (mapc (lambda (path)
 	(add-to-list 'load-path
-		     (concat site-lisp-path path)))
+		     (concat "C:/Program Files (x86)/Emacs/site-lisp/"
+                             path)))
       '(""
 	"color-theme-6.6.0"
-	"slime-2011-11-09"))
+	"slime-2011-11-09"
+        "icicles"
+        "haskell-mode"))
 
-;| Code-Window Init
+;; Icicles
+(require 'icicles)
+(icy-mode 1)
+
+;; Code-Window Init
 (setq code-window (car (get-buffer-window-list)))
 
-;| Speedbar
+;; Speedbar
 (require 'speedbar)
 (require 'sr-speedbar)
 
@@ -72,12 +93,12 @@
   (setq default-directory path)
   (speedbar-update-contents))
 
-;| Windows
+;; Windows
 (setq interactive-window      (split-window sr-speedbar-window 15)
       speedbar-menu-window    (split-window sr-speedbar-window () t)
       interactive-menu-window (split-window speedbar-menu-window))
 
-;| PowerShell
+;; PowerShell
 (autoload 'powershell "powershell"
   "Run powershell as a shell within emacs." t)
 
@@ -104,33 +125,36 @@
 	    (powershell--set-window-width powershell-process 59)))
       window-size-change-functions)
 
-;| Navigation
+;; Navigation
 (require 'button)
 
-(set-window-buffer speedbar-menu-window
-		   (generate-new-buffer "menu-a"))
-
+; Menu-A
 (defface green-link '((t (:foreground "green")))
   "Face for green links in upper navigation menu."
   :group 'basic-faces)
 
+(let ((w speedbar-menu-window))
+  (set-window-buffer w (generate-new-buffer "menu-a"))
+  (set-window-dedicated-p w t))
+
 (with-current-buffer "menu-a"
   (end-of-buffer)
   (flet (($ (label path)
-	    (x2 (newline))
+	    (newline)
 	    (insert-button label
 			   'action `(lambda (_)
 				      (speedbar-set-directory ,path))
 			   'face 'green-link
 			   'help-echo nil)))
-    ($ " [ hs-proj ] "  hs-proj-path)
-    ($ " [ sandbox ] "  sandbox-path)
-    ($ "  [ prog ]   "  prog-path)
-    ($ "[ site-lisp ]"  site-lisp-path)))
+    ($ " [ haskell ] " "S:/prog/lang.haskell/-.proj/")
+    (newline)
+    ($ " [ sandbox ] " "S:/prog/sandbox/")
+    ($ "  [ prog ]   " "S:/prog/")
+    (newline)
+    ($ "[ site-lisp ]" "C:/Program Files (x86)/Emacs/site-lisp/")
+    ($ "[ emacs-src ]" "C:/Program Files (x86)/Emacs/emacs/lisp/")))
 
-(set-window-buffer interactive-menu-window
-		   (generate-new-buffer "menu-b"))
-
+; Menu-B
 (defface yellow-link '((t (:foreground "yellow")))
   "Face for yellow links in lower navigation menu."
   :group 'basic-faces)
@@ -139,10 +163,18 @@
   "Face for orange links in lower navigation menu."
   :group 'basic-faces)
 
+(defface red-link '((t (:foreground "red")))
+  "Face for orange links in lower navigation menu."
+  :group 'basic-faces)
+
+(let ((w interactive-menu-window))
+  (set-window-buffer w (generate-new-buffer "menu-b"))
+  (set-window-dedicated-p w t))
+
 (with-current-buffer "menu-b"
   (end-of-buffer)
   (flet (($ (label buffer &optional face action)
-	    (x2 (newline))
+	    (newline)
 	    (insert-button label
 			   'action (or action
 				       `(lambda (_)
@@ -154,21 +186,29 @@
     ($ "  [ ghci ]   " "*haskell*")
     ($ "   [ ps ]    " "*PowerShell*")
     (newline)
+    ($ " [ buffers ] " "*Buffer List*" 'orange-link)
+    ($ "  [ trace ]  " "*Backtrace*" 'orange-link)
+    (newline)
     ($ " [ init.el ] " ()
-       'orange-link
+       'red-link
        (lambda (_)
 	 (with-selected-window code-window
 	   (set-window-buffer code-window
 			      (or (get-buffer "init.el")
 				  (find-file "~/.emacs.d/init.el"))))))))
 
-;| Color-Theme
+;; Buffer-List Customization (Hacks!)
+(with-current-buffer (window-buffer (list-buffers))
+  (setq Buffer-menu-files-only t)
+  (revert-buffer))
+
+;; Color-Theme
 (require 'color-theme)
 (color-theme-initialize)
 (color-theme-dark-blue2)
 
-;| Haskell-Mode
-(load "S:/prog/lang.elisp/haskell-mode/haskell-site-file.el")
+;; Haskell-Mode
+(site-load "haskell-mode/haskell-site-file.el")
 
 (mapc (lambda (event)
 	(add-hook 'haskell-mode-hook event))
@@ -182,7 +222,7 @@
 (set-window-buffer interactive-window
 		   inferior-haskell-buffer)
 
-;| Octave
+;; Octave
 (autoload 'octave-mode "octave-mod" nil t)
 
 (setq auto-mode-alist
@@ -196,12 +236,12 @@
 	    (if (eq window-system 'x)
 		(font-lock-mode 1))))
 
-;| Slime
+;; Slime
 (setq inferior-lisp-program "sbcl")
 (require 'slime)
 (require 'slime-autoloads)
 (slime-setup '(slime-fancy slime-indentation))
 
-;| Geiser
+;; Geiser
 (site-load "geiser-0.1.3/elisp/geiser.el")
 (setq geiser-impl-installed-implementations '(racket))
