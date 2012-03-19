@@ -114,6 +114,16 @@
   (setq default-directory path)
   (speedbar-update-contents))
 
+(defcustom my-speedbar-update-contents-hook nil
+  "Hooks run when the update-contents executed."
+  :group 'speedbar
+  :type 'hook)
+
+(defadvice speedbar-update-contents (after speedbar-update-contents-after-advice)
+  (run-hooks 'my-speedbar-update-contents-hook))
+
+(ad-activate 'speedbar-update-contents)
+
 ;; Windows
 (setq my-interactive-window  (split-window sr-speedbar-window 15)
       my-code-menu-window    (split-window sr-speedbar-window () t)
@@ -126,10 +136,10 @@
 (setq powershell-process
       (get-buffer-process (powershell)))
 
-(push (lambda ()
-	(process-send-string powershell-process
-			     (concat "cd \"" default-directory "\"\n")))
-      speedbar-update-contents-hook)
+(add-hook 'my-speedbar-update-contents-hook
+          (lambda ()
+            (process-send-string powershell-process
+                                 (concat "cd \"" default-directory "\"\n"))))
 
 
 ; my-code-menu-window resizer (to 13 columns)
