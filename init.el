@@ -64,7 +64,11 @@
   (setq-default indent-tabs-mode nil))
 
 ;; Global-Keybindings
-(define-key global-map [(control \\)] [?\u03BB])
+(define-key global-map [(control \\)] [?\u03BB]) ; λ
+(define-key global-map [(control \r)] [?\u03BC]) ; μ
+(define-key global-map [(control \v)] [?\u03BD]) ; ν
+(define-key global-map [(control \a)] [?\u2200]) ; ∀
+(define-key global-map [(control \e)] [?\u2203]) ; ∃
 (define-key global-map (kbd "RET") 'newline-and-indent)
 
 ;; UTF-8
@@ -87,7 +91,8 @@
 	"color-theme-6.6.0"
 	"slime-2011-11-09"
         "icicles"
-        "haskell-mode"))
+        "haskell-mode"
+        "php-mode-1.5.0"))
 
 ;; Icicles
 ;(require 'icicles)
@@ -295,9 +300,12 @@
 (site-load "geiser-0.1.3/elisp/geiser.el")
 (setq geiser-impl-installed-implementations '(racket))
 
+;; nxhtml
+(site-load "nxhtml/autostart.el")
+
 ;; Force some buffers to display in my-interactive-window
-(setq special-display-function 'my-display-buffer)
-(setq special-display-regexps '("^\\*.*"))
+(setq special-display-function 'my-display-buffer
+      special-display-regexps  '("^\\*.*"))
 
 (defun my-display-buffer (buffer &rest _)  
   (set-window-buffer my-interactive-window buffer)
