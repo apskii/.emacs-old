@@ -92,7 +92,8 @@
 	"slime-2011-11-09"
         "icicles"
         "haskell-mode"
-        "php-mode-1.5.0"))
+        "php-mode-1.5.0"
+        "js2-mode"))
 
 ;; Icicles
 ;(require 'icicles)
@@ -303,6 +304,10 @@
 ;; nxhtml
 (site-load "nxhtml/autostart.el")
 
+;; js2-mode
+(autoload 'js2-mode "js2-mode" nil t)
+(add-to-list 'auto-mode-alist '("\\.js$" . js2-mode))
+
 ;; Force some buffers to display in my-interactive-window
 (setq special-display-function 'my-display-buffer
       special-display-regexps  '("^\\*.*"))
@@ -310,3 +315,17 @@
 (defun my-display-buffer (buffer &rest _)  
   (set-window-buffer my-interactive-window buffer)
   my-interactive-window)
+(custom-set-variables
+  ;; custom-set-variables was added by Custom.
+  ;; If you edit it by hand, you could mess it up, so be careful.
+  ;; Your init file should contain only one such instance.
+  ;; If there is more than one, they won't work right.
+ '(js2-auto-indent-p t)
+ '(js2-enter-indents-newline t)
+ '(js2-indent-on-enter-key t))
+(custom-set-faces
+  ;; custom-set-faces was added by Custom.
+  ;; If you edit it by hand, you could mess it up, so be careful.
+  ;; Your init file should contain only one such instance.
+  ;; If there is more than one, they won't work right.
+ )
