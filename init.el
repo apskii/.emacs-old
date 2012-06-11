@@ -69,6 +69,7 @@
 (define-key global-map [(control \v)] [?\u03BD]) ; ν
 (define-key global-map [(control \a)] [?\u2200]) ; ∀
 (define-key global-map [(control \e)] [?\u2203]) ; ∃
+(define-key global-map [(control \d)] [?\u0394]) ; Δ
 (define-key global-map (kbd "RET") 'newline-and-indent)
 
 ;; UTF-8
