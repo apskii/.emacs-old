@@ -93,6 +93,7 @@
 	"slime-2011-11-09"
         "icicles"
         "haskell-mode"
+        "agda-mode"
         "php-mode-1.5.0"
         "js2-mode"))
 
@@ -277,6 +278,15 @@
 (inferior-haskell-start-process '("ghci"))
 (set-window-buffer my-interactive-window
 		   inferior-haskell-buffer)
+
+;; Agda-Mode
+(autoload 'agda2-mode "agda2-mode"
+  "Major mode for editing Agda files (version ? 2)." t)
+
+(add-to-list 'auto-mode-alist '("\\.l?agda\\'" . agda2-mode))
+(modify-coding-system-alist 'file "\\.l?agda\\'" 'utf-8)
+
+(provide 'agda2)
 
 ;; Octave
 (autoload 'octave-mode "octave-mod" nil t)
