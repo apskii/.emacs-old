@@ -164,6 +164,22 @@
 	    (powershell--set-window-width powershell-process 59)))
       window-size-change-functions)
 
+; interactive-window resizer
+(push (lambda (_)
+	(let ((w (window-height my-interactive-window)))
+	  (when (< w 38)
+	    (with-selected-window my-interactive-window
+	      (enlarge-window (- 38 w))))))
+      window-size-change-functions)
+
+; code-menu window resizer
+(push (lambda (_)
+	(let ((w (window-height my-code-menu-window)))
+	  (when (< w 13)
+	    (with-selected-window my-code-menu-window
+	      (enlarge-window (- 13 w))))))
+      window-size-change-functions)
+
 ;; Navigation
 (require 'button)
 
