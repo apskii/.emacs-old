@@ -92,6 +92,7 @@
 	"color-theme-6.6.0"
 	"slime-2011-11-09"
         "icicles"
+        "doremi"
         "haskell-mode"
         "agda-mode"
         "php-mode-1.5.0"
@@ -338,6 +339,11 @@
 ;; hamlet-mode
 (require 'hamlet-mode)
 
+;; DoReMi
+(require 'doremi)
+(require 'doremi-cmd)
+(require 'doremi-frm)
+
 ;; Force some buffers to display in my-interactive-window
 (setq special-display-function 'my-display-buffer
       special-display-regexps  '("^\\*.*"))
@@ -350,9 +356,11 @@
   ;; If you edit it by hand, you could mess it up, so be careful.
   ;; Your init file should contain only one such instance.
   ;; If there is more than one, they won't work right.
+ '(agda2-highlight-face-groups (quote default-faces))
  '(js2-auto-indent-p t)
  '(js2-enter-indents-newline t)
- '(js2-indent-on-enter-key t))
+ '(js2-indent-on-enter-key t)
+ '(speedbar-supported-extension-expressions (quote (".lisp" ".lhs" ".hs" ".[ch]\\(\\+\\+\\|pp\\|c\\|h\\|xx\\)?" ".tex\\(i\\(nfo\\)?\\)?" ".el" ".emacs" ".l" ".lsp" ".p" ".java" ".js" ".f\\(90\\|77\\|or\\)?" ".ada" ".p[lm]" ".tcl" ".m" ".scm" ".pm" ".py" ".g" ".s?html" ".ma?k" "[Mm]akefile\\(\\.in\\)?" ".agda"))))
 (custom-set-faces
   ;; custom-set-faces was added by Custom.
   ;; If you edit it by hand, you could mess it up, so be careful.
