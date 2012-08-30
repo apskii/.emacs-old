@@ -83,6 +83,9 @@
   
   (prefer-coding-system 'utf-8))
 
+;; Font
+(set-face-font 'default "-misc-cmu typewriter text-medium-r-normal--0-0-0-0-m-0-iso8859-1")
+
 ;; Auto-Load Site-Lisp Stuff
 (mapc (lambda (path)
 	(add-to-list 'load-path
@@ -351,12 +354,14 @@
 (defun my-display-buffer (buffer &rest _)  
   (set-window-buffer my-interactive-window buffer)
   my-interactive-window)
+
 (custom-set-variables
   ;; custom-set-variables was added by Custom.
   ;; If you edit it by hand, you could mess it up, so be careful.
   ;; Your init file should contain only one such instance.
   ;; If there is more than one, they won't work right.
  '(agda2-highlight-face-groups (quote default-faces))
+ '(agda2-include-dirs (quote ("S:/prog/agda/lib-0.6/src" ".")))
  '(js2-auto-indent-p t)
  '(js2-enter-indents-newline t)
  '(js2-indent-on-enter-key t)
